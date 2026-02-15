@@ -22,7 +22,7 @@ fi
 apt update && apt upgrade -y
 
 # Install dependencies
-apt install -y nginx mariadb-server php-fpm php-mysql php-cli php-curl php-gd php-mbstring php-xml php-zip php-bcmath php-intl php-soap bind9 postfix dovecot-imapd dovecot-pop3d certbot python3-certbot-nginx roundcube unzip curl git fail2ban ufw
+apt install -y nginx mariadb-server php-fpm php-mysql php-cli php-curl php-gd php-mbstring php-xml php-zip php-bcmath php-intl php-soap bind9 postfix dovecot-imapd dovecot-pop3d certbot python3-certbot-nginx roundcube unzip curl git fail2ban ufw composer
 
 # Create directory structure
 mkdir -p /var/www/panel
