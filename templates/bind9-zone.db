@@ -1,0 +1,17 @@
+$TTL    86400
+@       IN      SOA     ns1.{{DOMAIN}}. admin.{{DOMAIN}}. (
+                              2026021501 ; serial
+                              3600       ; refresh
+                              1800       ; retry
+                              604800     ; expire
+                              86400      ; minimum
+)
+@       IN      NS      ns1.{{DOMAIN}}.
+@       IN      NS      ns2.{{DOMAIN}}.
+@       IN      A       {{IP}}
+ns1     IN      A       {{IP}}
+ns2     IN      A       {{IP}}
+www     IN      A       {{IP}}
+mail    IN      A       {{IP}}
+@       IN      MX      10 mail.{{DOMAIN}}.
+@       IN      TXT     "v=spf1 a mx ip4:{{IP}} ~all"
