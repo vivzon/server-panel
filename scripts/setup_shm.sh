@@ -85,6 +85,7 @@ ln -sf /etc/nginx/sites-available/shm-panel /etc/nginx/sites-enabled/
 systemctl restart nginx
 
 # 4. Permissions
+mkdir -p /var/www/panel/storage /var/www/panel/bootstrap/cache
 chown -R www-data:www-data /var/www/panel
 chmod -R 755 /var/www/panel/scripts
 chmod -R 775 /var/www/panel/storage /var/www/panel/bootstrap/cache
