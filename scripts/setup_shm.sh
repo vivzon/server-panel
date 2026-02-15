@@ -22,6 +22,10 @@ wait_for_apt() {
 # 1. Wait for Locks and Update
 wait_for_apt
 apt-get update
+apt-get install -y software-properties-common
+add-apt-repository -y ppa:ondrej/php
+apt-get update
+
 apt-get install -y nginx mariadb-server php8.2-fpm php8.2-mysql php8.2-xml php8.2-curl php8.2-mbstring php8.2-zip unzip certbot python3-certbot-nginx bind9 postfix dovecot-imapd dovecot-pop3d fail2ban ufw htop curl git
 
 # 2. Install Composer if missing
