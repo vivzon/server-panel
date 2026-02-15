@@ -1,53 +1,65 @@
 # SHM Panel - AI-Driven Server Management
 
-SHM Panel is a professional, production-ready server management solution built for Ubuntu 22.04/24.04. It features **VEDA**, an integrated AI orchestrator that allows you to manage your VPS using natural language commands.
+SHM Panel is a professional, production-ready server management solution built for Ubuntu 22.04 LTS. It features **VEDA**, an integrated AI orchestrator that allows you to manage your VPS using natural language commands.
 
-## 🚀 One-Command Installation
+## 🚀 Step-by-Step Deployment Guide
 
-To install SHM Panel on a fresh Ubuntu VPS, run the following command as root:
+Follow these steps to deploy SHM Panel on a fresh VPS.
 
+### 📋 1. Pre-requisites
+- **OS**: Ubuntu 22.04 LTS (Jammy Jellyfish).
+- **Resources**: 1GB RAM minimum (2GB+ recommended).
+- **Access**: Root or a user with `sudo` privileges.
+- **PHP Support**: Compatibility for PHP 8.1, 8.2, and 8.4 is built-in.
+
+### 🛠️ 2. Initialize the Environment
+Connect to your VPS via SSH and clone the project:
 ```bash
-curl -sSL https://raw.githubusercontent.com/your-repo/server-panel/main/scripts/setup_shm.sh | sudo bash
+sudo mkdir -p /var/www/panel
+cd /var/www/panel
+# Clone your repository here
+git clone <your-repository-url> .
 ```
 
-*Note: Replace the URL with your actual repository link or download the script manually.*
+### 📦 3. Run the Master Installer
+The `setup_vivzon.sh` script automates the installation of the LEMP stack, security layers, and AI core.
+```bash
+sudo chmod +x setup_vivzon.sh
+sudo ./setup_vivzon.sh
+```
+*Note: This script will automatically stop Apache if it's conflicting with Nginx port 80.*
 
-### Manual Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-repo/server-panel.git /var/www/panel
-   ```
-2. Run the master setup script:
-   ```bash
-   sudo bash /var/www/panel/scripts/setup_shm.sh
-   ```
+### 📂 4. Install Dependencies
+Install the Laravel framework core and vendor packages:
+```bash
+export COMPOSER_ALLOW_SUPERUSER=1
+composer install
+```
+
+### 🗄️ 5. Database Setup
+Sync the database structure including the new Authentication, API, and Webhook tables:
+```bash
+php artisan migrate
+```
+
+### 🌍 6. Access & Finalize
+1. Open `http://your-server-ip` in your browser.
+2. Complete the **First-Run Setup** to create your Admin account.
+3. Access the **Marketplace** for one-click app deployments.
+
+---
 
 ## 🧠 VEDA AI Commands
-VEDA understands Hinglish and English. You can interact with it via the integrated terminal in the panel dashboard.
-
-### Examples:
-- **Domains**: "add domain example.com", "domain add karo example.com"
-- **SSL**: "ssl lagao", "install ssl"
-- **Database**: "create database mydb", "database banao shm_db"
-- **Mail**: "mail server setup karo", "email banao user@example.com"
-- **Security**: "firewall status", "port allow karo 8080", "system audit"
-- **Apps**: "wordpress install karo blog.com", "install nodejs example.com myapp"
+VEDA understands English & Hinglish. Manage your server by typing or speaking:
+- **Domains**: "add domain example.com"
+- **App Deploy**: "install wordpress example.com", "deploy laravel example.com"
+- **Security**: "security audit", "port allow 8080", "generate api token"
+- **Maintenance**: "system update", "self heal", "optimize server"
 - **Backups**: "backup lelo", "cloud backup s3"
-- **Maintenance**: "self heal", "server status", "logs dikhao nginx"
 
-## 🛡️ Key Features
-- **Self-Healing**: Automatic watchdog that monitors and repairs services every 5 minutes.
-- **Security Jails**: Fail2ban protection for SSH, Nginx, and Panel logins.
-- **Client Isolation**: Multi-client directory structure in `/var/www/clients`.
-- **Resource Insights**: Real-time CPU, RAM, and Disk monitoring with per-client reports.
-- **Cloud Ready**: Off-site backups integrated with Rclone (S3, GDrive, B2).
+## 🛡️ Developer API & Webhooks
+- **REST API**: Accessible at `/api/v1/*` using Sanctum tokens.
+- **Webhooks**: Real-time notifications for `domain.created`, `ssl.installed`, `database.created`, and `backup.completed`.
 
-## 📂 Project Structure
-- `/app`: Laravel backend logic.
-- `/resources`: Frontend views and assets.
-- `/scripts`: Bash automation layer.
-- `/templates`: Standardized Nginx and Bind9 configuration maps.
-- `/storage/backups`: Local system backup repository.
-
-## 📄 License
-MIT License. Created by VEDA AI Agent.
+---
+Created by VEDA AI Agent | SHM Panel Production 1.0

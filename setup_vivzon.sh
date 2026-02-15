@@ -13,13 +13,29 @@ echo "------------------------------------------------"
 # 1. Base Setup
 bash scripts/setup.sh
 
+# 1.5 Port Conflict Cleanup (Stop Apache to allow Nginx)
+if systemctl is-active --quiet apache2; then
+    echo "Stopping Apache to allow Nginx to bind to port 80..."
+    systemctl stop apache2
+    systemctl disable apache2
+fi
+
 # 2. Deploy Laravel Panel
-# Assuming the files are already in the current directory
-cp -r . /var/www/panel/
+# Handle case where script is run from /var/www/panel itself
+if [ "$(pwd)" != "/var/www/panel" ]; then
+    mkdir -p /var/www/panel
+    cp -r . /var/www/panel/
+fi
 chown -R www-data:www-data /var/www/panel
 chmod -R 775 /var/www/panel/storage /var/www/panel/bootstrap/cache
 
 # 3. Configure Nginx for Panel
+PHP_VER=$(php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')
+FPM_SOCKET="/var/run/php/php${PHP_VER}-fpm.sock"
+
+echo "Detected PHP Version: $PHP_VER"
+echo "Targeting FPM Socket: $FPM_SOCKET"
+
 cat <<EOF > /etc/nginx/sites-available/shm-panel
 server {
     listen 80;
@@ -33,7 +49,7 @@ server {
 
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+        fastcgi_pass unix:$FPM_SOCKET;
     }
 }
 EOF

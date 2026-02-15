@@ -115,6 +115,9 @@ class VedaController extends Controller
 
             case 'ssl_install':
                 $result = Process::run("certbot --nginx --non-interactive --agree-tos -m admin@shm-panel.local");
+                if ($result->successful()) {
+                    \App\Services\WebhookService::dispatch('ssl.installed', ['status' => 'success']);
+                }
                 break;
 
             case 'mysql_restart':
@@ -126,6 +129,9 @@ class VedaController extends Controller
                 $dbuser = $dbname . "_user";
                 $dbpass = bin2hex(random_bytes(8));
                 $result = Process::run("/var/www/panel/scripts/shm-db-add.sh $dbname $dbuser $dbpass");
+                if ($result->successful()) {
+                    \App\Services\WebhookService::dispatch('database.created', ['database' => $dbname]);
+                }
                 break;
 
             case 'email_create':
@@ -136,6 +142,9 @@ class VedaController extends Controller
 
             case 'backup':
                 $result = Process::run("/var/www/panel/scripts/shm-backup.sh");
+                if ($result->successful()) {
+                    \App\Services\WebhookService::dispatch('backup.completed', ['type' => 'full']);
+                }
                 break;
 
             case 'logs':

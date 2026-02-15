@@ -3,8 +3,11 @@
 This guide provides a step-by-step walkthrough for deploying the SHM Panel on a fresh Ubuntu VPS.
 
 ## 📋 Pre-requisites
-- A fresh VPS running **Ubuntu 22.04 LTS** or **24.04 LTS**.
-- Root access (or a user with `sudo` privileges).
+- A fresh VPS running- **OS**: Ubuntu 22.04 LTS (Jammy Jellyfish)
+- **PHP**: 8.1 - 8.4 (Nginx/PHP-FPM)
+- **Database**: MariaDB 10.6+
+- **Access**: Root/Sudo privileges on a fresh VPS.
+- **Bootstrapping**: The project now includes a pre-built `artisan` script and core `config/` files for instant deployment.
 - A domain name (e.g., `panel.yourdomain.com`) pointing to your server's IP address.
 - At least 1GB RAM (2GB+ recommended for mail and multiple apps).
 
