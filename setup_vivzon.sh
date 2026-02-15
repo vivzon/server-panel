@@ -2,7 +2,7 @@
 
 # VIVZON SHM PANEL - MASTER INSTALLER
 # Target: Ubuntu 22.04 LTS
-# Author: VEDA AI Agent
+# Author: VEDA AI Agent .
 
 set -e
 
