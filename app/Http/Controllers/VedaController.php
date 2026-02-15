@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Log;
+use App\Models\ActivityLog;
 
 class VedaController extends Controller
 {
@@ -31,11 +32,31 @@ class VedaController extends Controller
         'list_files' => '/(?:files dikhao|list files) ([\w_-]+)/i',
         'quota_check' => '/(?:quota check|check quota) ([\w_-]+)/i',
         'self_heal' => '/(?:self heal|fix system|auto fix)/i',
+        'performance_audit' => '/(?:performance audit|optimize server|speed up)/i',
         'nodejs_install' => '/(?:nodejs install karo|install nodejs) ([\w\.-]+) (\w+)/i',
         'laravel_deploy' => '/(?:laravel install karo|deploy laravel) ([\w\.-]+)/i',
         'system_audit' => '/(?:system audit|full audit|check system security)/i',
         'cloud_backup' => '/(?:cloud backup|backup to cloud) ([\w_-]+)/i',
         'client_report' => '/(?:client report|resource report) ([\w_-]+)?/i',
+        'system_update' => '/(?:system update|panel update|check for updates)/i',
+        'generate_token' => '/(?:generate api token|token banao|create api key)/i',
+    ];
+
+    /**
+     * Intents that only admins can execute.
+     */
+    protected $adminOnlyIntents = [
+        'mysql_restart',
+        'firewall_status',
+        'firewall_allow',
+        'firewall_deny',
+        'jail_setup',
+        'self_heal',
+        'system_audit',
+        'performance_audit',
+        'client_add',
+        'system_update',
+        'generate_token'
     ];
 
     /**
@@ -43,13 +64,13 @@ class VedaController extends Controller
      */
     public function processCommand(Request $request)
     {
-        $input = $request->input('command');
-        Log::info("VEDA received command: " . $input);
+        $command = $request->input('command');
+        Log::info("VEDA received command: " . $command);
 
         // SECURITY GUARD: Prohibit destructive commands
         $destructive = ['rm ', 'rm -rf', 'format ', 'shutdown', 'reboot', 'mkfs', 'dd '];
         foreach ($destructive as $danger) {
-            if (stripos($input, $danger) !== false) {
+            if (stripos($command, $danger) !== false) {
                 return response()->json([
                     'status' => 'critical',
                     'message' => 'Action Prohibited: VEDA does not allow destructive system commands like ' . trim($danger) . '.'
@@ -58,7 +79,16 @@ class VedaController extends Controller
         }
 
         foreach ($this->patterns as $intent => $pattern) {
-            if (preg_match($pattern, $input, $matches)) {
+            if (preg_match($pattern, $command, $matches)) {
+
+                // Check RBAC
+                if (in_array($intent, $this->adminOnlyIntents) && !auth()->user()->isAdmin()) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Lota! Yeh command sirf admin chala sakta hai.'
+                    ]);
+                }
+
                 return $this->executeIntent($intent, $matches);
             }
         }
@@ -78,6 +108,9 @@ class VedaController extends Controller
                     return response()->json(['status' => 'error', 'message' => 'Invalid domain format.']);
                 }
                 $result = Process::run("/var/www/panel/scripts/shm-domain-add.sh $domain");
+                if ($result->successful()) {
+                    \App\Services\WebhookService::dispatch('domain.created', ['domain' => $domain]);
+                }
                 break;
 
             case 'ssl_install':
@@ -190,22 +223,47 @@ class VedaController extends Controller
                 $result = Process::run("/var/www/panel/scripts/shm-client-usage.sh $client");
                 break;
 
+            case 'performance_audit':
+                $result = Process::run("/var/www/panel/scripts/shm-optimize.sh");
+                break;
+
+            case 'system_update':
+                $result = Process::run("apt update && apt upgrade -y");
+                break;
+
+            case 'generate_token':
+                $user = auth()->user();
+                $token = $user->createToken('veda-cli')->plainTextToken;
+                return response()->json([
+                    'status' => 'success',
+                    'message' => "VEDA: API Token generate ho gaya! Ise sambhaal ke rakhein.",
+                    'output' => "TOKEN: $token"
+                ]);
+
             default:
                 return response()->json(['status' => 'error', 'message' => 'Intent not mapped.']);
         }
 
         if ($result->successful()) {
-            return response()->json([
-                'status' => 'success',
-                'output' => $result->output(),
-                'message' => 'VEDA: Kaam ho gaya!'
-            ]);
+            $status = 'success';
+            $message = 'VEDA: Kaam ho gaya!';
+        } else {
+            $status = 'error';
+            $message = 'VEDA: Kuch gadbad ho gayi.';
         }
 
+        ActivityLog::create([
+            'intent' => $intent,
+            'command' => is_string($matches) ? $matches : json_encode($matches),
+            'output' => $result->output() . $result->errorOutput(),
+            'status' => $status,
+            'user_id' => auth()->id(),
+        ]);
+
         return response()->json([
-            'status' => 'error',
-            'output' => $result->errorOutput(),
-            'message' => 'VEDA: Kuch gadbad ho gayi.'
+            'status' => $status,
+            'output' => $result->output() ?: $result->errorOutput(),
+            'message' => $message
         ]);
     }
 }

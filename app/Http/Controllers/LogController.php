@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Process;
+use App\Models\ActivityLog;
 
 class LogController extends Controller
 {
@@ -34,6 +35,19 @@ class LogController extends Controller
         return response()->json([
             'status' => 'success',
             'data' => $result->output() ?: "No logs found or permission denied.",
+        ]);
+    }
+
+    /**
+     * Fetch recent VEDA activity logs from database.
+     */
+    public function getActivityLogs()
+    {
+        $logs = ActivityLog::orderBy('created_at', 'desc')->take(20)->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $logs,
         ]);
     }
 }
